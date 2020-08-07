@@ -11,6 +11,7 @@ import selectionAPI from '../selection/index.js'
 import UploadImg from './upload/upload-img.js'
 import { arrForEach, objForEach } from '../util/util.js'
 import { getRandom } from '../util/util.js'
+import ImageResize from './image-resize'
 
 // id，累加
 let editorId = 1
@@ -80,11 +81,11 @@ Editor.prototype = {
             $toolbarSelector.append($toolbarElem).append($textContainerElem)
 
             // 自行创建的，需要配置默认的样式
-            $toolbarElem.css('background-color', '#f1f1f1')
-                            .css('border', '1px solid #ccc')
-            $textContainerElem.css('border', '1px solid #ccc')
-                            .css('border-top', 'none')
-                            .css('height', '300px')
+            $toolbarElem.css('background-color', '#ffffff')
+                .css('border-top', '1px solid #ebebeb')
+                .css('border-bottom', '1px solid #ebebeb')
+            $textContainerElem.css('border-top', 'none')
+                .css('height', '600px')
         } else {
             // toolbar 和 text 的选择器都有值，记录属性
             $toolbarElem = $toolbarSelector
@@ -96,8 +97,8 @@ Editor.prototype = {
         // 编辑区域
         $textElem = $('<div></div>')
         $textElem.attr('contenteditable', 'true')
-                .css('width', '100%')
-                .css('height', '100%')
+            .css('width', '100%')
+            .css('height', '100%')
 
         // 初始化编辑区域内容
         if ($children && $children.length) {
@@ -142,37 +143,37 @@ Editor.prototype = {
         // 绑定 onchange
         $textContainerElem.on('click keyup', () => {
             // 输入法结束才出发 onchange
-            compositionEnd && this.change &&  this.change()
+            compositionEnd && this.change && this.change()
         })
         $toolbarElem.on('click', function () {
-            this.change &&  this.change()
+            this.change && this.change()
         })
 
         //绑定 onfocus 与 onblur 事件
-        if(config.onfocus || config.onblur){
+        if (config.onfocus || config.onblur) {
             // 当前编辑器是否是焦点状态
             this.isFocus = false
-            
+
             $(document).on('click', (e) => {
                 //判断当前点击元素是否在编辑器内
                 const isChild = $textElem.isContain($(e.target))
-                
+
                 //判断当前点击元素是否为工具栏
                 const isToolbar = $toolbarElem.isContain($(e.target))
                 const isMenu = $toolbarElem[0] == e.target ? true : false
 
                 if (!isChild) {
                     //若为选择工具栏中的功能，则不视为成blur操作
-                    if(isToolbar && !isMenu){
+                    if (isToolbar && !isMenu) {
                         return
                     }
 
-                    if(this.isFocus){
+                    if (this.isFocus) {
                         this.onblur && this.onblur()
                     }
                     this.isFocus = false
-                }else{
-                    if(!this.isFocus){
+                } else {
+                    if (!this.isFocus) {
                         this.onfocus && this.onfocus()
                     }
                     this.isFocus = true
@@ -253,7 +254,7 @@ Editor.prototype = {
         }
 
         const onchange = config.onchange
-        if (onchange && typeof onchange === 'function'){
+        if (onchange && typeof onchange === 'function') {
             // 触发 change 的有三个场景：
             // 1. $textContainerElem.on('click keyup')
             // 2. $toolbarElem.on('click')
@@ -278,7 +279,7 @@ Editor.prototype = {
                     onchange(currentHtml)
                     beforeChangeHtml = currentHtml
                 }, onchangeTimeout)
-            }   
+            }
         }
 
         // -------- 绑定 onblur 事件 --------
@@ -297,7 +298,7 @@ Editor.prototype = {
                 onfocus()
             }
         }
-        
+
     },
 
     // 创建编辑器
@@ -328,6 +329,8 @@ Editor.prototype = {
 
         // 绑定事件
         this._bindEvent()
+
+        new ImageResize(this)
     },
 
     // 解绑所有事件（暂时不对外开放）
